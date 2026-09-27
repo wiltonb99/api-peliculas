@@ -1,7 +1,9 @@
 package com.example.api_peliculas.controller;
 
 import com.example.api_peliculas.dto.PeliculaDTO;
+import com.example.api_peliculas.model.Director;
 import com.example.api_peliculas.model.Pelicula;
+import com.example.api_peliculas.repository.DirectorRepository;
 import com.example.api_peliculas.repository.PeliculaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,14 +16,20 @@ import java.util.List;
 public class PeliculaController {
 
     private final PeliculaRepository repository;
+    private final DirectorRepository directorRepository;
 
-    public PeliculaController(PeliculaRepository repository) {
+    public PeliculaController(
+            PeliculaRepository repository,
+            DirectorRepository directorRepository) {
+
         this.repository = repository;
+        this.directorRepository = directorRepository;
     }
 
     // 1. GET - Obtener todas las películas
     @GetMapping
     public ResponseEntity<List<Pelicula>> obtenerPeliculas() {
+
         return ResponseEntity.ok(repository.findAll());
     }
 
@@ -46,10 +54,18 @@ public class PeliculaController {
         return ResponseEntity.ok(resultado);
     }
 
-    // 4. POST - Crear película
+    // 4. POST - Crear película con director
     @PostMapping
     public ResponseEntity<Pelicula> crearPelicula(
             @RequestBody PeliculaDTO datos) {
+
+        Director director = directorRepository
+                .findById(datos.directorId())
+                .orElse(null);
+
+        if (director == null) {
+            return ResponseEntity.badRequest().build();
+        }
 
         Pelicula nuevaPelicula = new Pelicula(
                 null,
@@ -58,6 +74,8 @@ public class PeliculaController {
                 datos.anio()
         );
 
+        nuevaPelicula.setDirector(director);
+
         Pelicula guardada = repository.save(nuevaPelicula);
 
         return ResponseEntity
@@ -65,7 +83,7 @@ public class PeliculaController {
                 .body(guardada);
     }
 
-    // 5. PUT - Actualizar película
+    // 5. PUT - Actualizar película con director
     @PutMapping("/{id}")
     public ResponseEntity<Pelicula> actualizarPelicula(
             @PathVariable Long id,
@@ -74,9 +92,18 @@ public class PeliculaController {
         return repository.findById(id)
                 .map(pelicula -> {
 
+                    Director director = directorRepository
+                            .findById(datos.directorId())
+                            .orElse(null);
+
+                    if (director == null) {
+                        return null;
+                    }
+
                     pelicula.setTitulo(datos.titulo());
                     pelicula.setGenero(datos.genero());
                     pelicula.setAnio(datos.anio());
+                    pelicula.setDirector(director);
 
                     Pelicula actualizada = repository.save(pelicula);
 

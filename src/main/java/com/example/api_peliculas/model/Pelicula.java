@@ -4,6 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Pelicula {
@@ -15,6 +17,10 @@ public class Pelicula {
     private String titulo;
     private String genero;
     private Integer anio;
+
+    @ManyToOne
+    @JoinColumn(name = "director_id")
+    private Director director;
 
     public Pelicula() {
     }
@@ -56,5 +62,13 @@ public class Pelicula {
 
     public void setAnio(Integer anio) {
         this.anio = anio;
+    }
+
+    public Director getDirector() {
+        return director;
+    }
+
+    public void setDirector(Director director) {
+        this.director = director;
     }
 }
